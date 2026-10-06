@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>고사성어 퀴즈 (가로모드 최적화)</title>
+
+    <title>고사성어 퀴즈</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -17,771 +18,983 @@
         .hanzi {
             font-family: 'Noto Serif KR', serif;
         }
+
+        input {
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        @media (orientation: portrait) {
+            body {
+                align-items: flex-start;
+                padding-top: 12px;
+            }
+        }
     </style>
 </head>
 
 <body class="bg-slate-100 text-slate-800 min-h-screen flex items-center justify-center p-2 sm:p-4">
 
-    <main class="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-4 border border-slate-200">
+<main class="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-4 border border-slate-200">
 
-        <!-- ============================= -->
-        <!-- 1. 설정 영역 -->
-        <!-- ============================= -->
+    <!-- ============================= -->
+    <!-- 1. 설정 영역 -->
+    <!-- ============================= -->
 
-        <div id="setup-section" class="space-y-4">
+    <div id="setup-section" class="space-y-4">
 
-            <h1 class="text-2xl font-bold text-center text-slate-900">
-                고사성어 퀴즈
-            </h1>
+        <h1 class="text-2xl font-bold text-center text-slate-900">
+            고사성어 퀴즈
+        </h1>
 
-            <div class="text-center text-xs text-slate-500">
-                태블릿 가로모드 최적화
-            </div>
-
-            <!-- 모드 선택 -->
-            <div class="grid grid-cols-2 gap-3">
-
-                <button
-                    type="button"
-                    onclick="selectMode(1)"
-                    id="mode-btn-1"
-                    class="mode-btn p-3 border-2 rounded-xl text-left font-semibold border-indigo-600 bg-indigo-50 text-indigo-900">
-
-                    <div class="text-base font-bold">
-                        모드 1: 음(독음) 맞추기
-                    </div>
-
-                    <div class="text-xs text-indigo-600 font-normal mt-0.5">
-                        예: 苦盡甘來 → 고진감래
-                    </div>
-                </button>
-
-                <button
-                    type="button"
-                    onclick="selectMode(2)"
-                    id="mode-btn-2"
-                    class="mode-btn p-3 border-2 rounded-xl text-left font-semibold border-slate-200 hover:border-slate-300 text-slate-700">
-
-                    <div class="text-base font-bold">
-                        모드 2: 뜻과 음 맞추기
-                    </div>
-
-                    <div class="text-xs text-slate-500 font-normal mt-0.5">
-                        예: 苦盡甘來 → 쓸 고 다할 진 달 감 올 래
-                    </div>
-                </button>
-
-            </div>
+        <p class="text-center text-xs text-slate-500">
+            고사성어를 보고 독음을 입력하세요.
+        </p>
 
 
-            <!-- 범위 선택 -->
-            <div>
+        <!-- 범위 선택 -->
 
-                <label class="block text-xs font-bold text-slate-600 mb-1">
-                    범위 선택 (10개 단위)
-                </label>
+        <div>
 
-                <div
-                    id="range-grid"
-                    class="grid grid-cols-5 gap-1.5">
-                </div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">
+                범위 선택 (여러 개 선택 가능)
+            </label>
 
-            </div>
+            <div id="range-grid" class="grid grid-cols-5 gap-1.5"></div>
 
-
-            <!-- 시작 버튼 -->
-            <button
-                onclick="startQuiz()"
-                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow transition text-base">
-
-                퀴즈 시작하기
-
-            </button>
+            <p class="text-xs text-slate-400 mt-2">
+                여러 범위를 동시에 선택할 수 있습니다.
+            </p>
 
         </div>
 
 
-        <!-- ============================= -->
-        <!-- 2. 퀴즈 영역 -->
-        <!-- ============================= -->
-
-        <div id="quiz-section" class="hidden space-y-3">
-
-            <!-- 상단 바 -->
-            <div class="flex justify-between items-center text-xs font-semibold text-slate-500 border-b pb-2">
-
-                <button
-                    onclick="resetSetup()"
-                    class="text-slate-400 hover:text-slate-600">
-
-                    ← 처음으로
-
-                </button>
-
-                <span id="progress-text">
-                    문제 1 / 10
-                </span>
-
-                <span
-                    id="score-text"
-                    class="text-indigo-600 font-bold">
-
-                    점수: 0점
-
-                </span>
-
-            </div>
-
-
-            <!-- 좌우 분할 -->
-            <div class="grid grid-cols-12 gap-4 items-center py-2">
-
-                <!-- 왼쪽 -->
-                <div
-                    class="col-span-5 text-center border-r pr-4 border-slate-100 flex flex-col justify-center min-h-[140px]">
-
-                    <div
-                        id="hanzi-display"
-                        class="hanzi text-4xl sm:text-5xl font-black text-slate-900 tracking-wider mb-2 leading-none">
-
-                        ---
-
-                    </div>
-
-
-                    <!-- 의미 -->
-                    <div
-                        id="meaning-hint-box"
-                        class="hidden bg-indigo-50 p-2 rounded-lg border border-indigo-100 text-xs text-indigo-900 font-medium">
-
-                        <span id="meaning-hint-text">
-                            의미 영역
-                        </span>
-
-                    </div>
-
-                </div>
-
-
-                <!-- 오른쪽 -->
-                <div class="col-span-7 space-y-2 pl-2">
-
-                    <p
-                        id="mode-hint"
-                        class="text-xs text-slate-500 font-medium">
-
-                        정답을 입력하세요.
-
-                    </p>
-
-
-                    <div class="flex gap-2">
-
-                        <input
-                            type="text"
-                            id="answer-input"
-                            placeholder="정답 입력 (Enter 누르기)"
-                            class="flex-1 px-3 py-2.5 border-2 border-slate-300 rounded-xl focus:outline-none focus:border-indigo-600 text-base font-medium"
-                            autocomplete="off">
-
-
-                        <button
-                            id="action-btn"
-                            onclick="handleAction()"
-                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl transition text-base whitespace-nowrap min-w-[90px]">
-
-                            확인
-
-                        </button>
-
-                    </div>
-
-
-                    <!-- 피드백 -->
-                    <div
-                        id="feedback"
-                        class="h-8 flex items-center justify-center font-bold text-sm rounded-lg">
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- ============================= -->
-        <!-- 3. 결과 영역 -->
-        <!-- ============================= -->
+        <!-- 선택 범위 표시 -->
 
         <div
-            id="result-section"
-            class="hidden text-center space-y-4 py-4">
+            id="selected-range-text"
+            class="text-center text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg py-2"
+        >
+            선택 범위: 1~10
+        </div>
 
-            <h2 class="text-xl font-bold text-slate-900">
-                퀴즈 완료!
-            </h2>
 
-            <div
-                class="text-4xl font-extrabold text-indigo-600"
-                id="final-score">
+        <!-- 시작 버튼 -->
 
-                0 / 100점
+        <button
+            type="button"
+            onclick="startQuiz()"
+            class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow transition text-base"
+        >
+            퀴즈 시작하기
+        </button>
 
-            </div>
+    </div>
 
-            <p
-                id="result-message"
-                class="text-slate-600 text-sm">
 
-                수고하셨습니다!
 
-            </p>
+    <!-- ============================= -->
+    <!-- 2. 퀴즈 영역 -->
+    <!-- ============================= -->
+
+    <div id="quiz-section" class="hidden space-y-3">
+
+        <!-- 상단 바 -->
+
+        <div class="flex justify-between items-center text-xs font-semibold text-slate-500 border-b pb-2">
 
             <button
                 onclick="resetSetup()"
-                class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl shadow">
-
-                다시 하기
-
+                class="text-slate-400 hover:text-slate-600"
+            >
+                ← 처음으로
             </button>
+
+            <span id="progress-text">
+                문제 1 / 10
+            </span>
+
+            <span
+                id="score-text"
+                class="text-indigo-600 font-bold"
+            >
+                점수: 0점
+            </span>
 
         </div>
 
-    </main>
 
 
-    <script>
+        <!-- 좌 / 우 분할 -->
 
-        /* =========================================
-           고사성어 데이터
-           ========================================= */
-
-        const idiomsData = [
-
-            { id: 1, hanzi: "根幹", reading: "근간", meaning: "뿌리 근 줄기 간" },
-            { id: 2, hanzi: "白眉", reading: "백미", meaning: "흰 백 눈썹 미" },
-            { id: 3, hanzi: "無盡藏", reading: "무진장", meaning: "없을 무 다할 진 감출 장" },
-            { id: 4, hanzi: "千里眼", reading: "천리안", meaning: "일천 천 마을 리 눈 안" },
-            { id: 5, hanzi: "甘言利說", reading: "감언이설", meaning: "달 감 말씀 언 이할 이 말씀 설" },
-            { id: 6, hanzi: "居安思危", reading: "거안사위", meaning: "살 거 편안 안 생각할 사 위태할 위" },
-            { id: 7, hanzi: "見利思義", reading: "견리사의", meaning: "볼 견 이할 이 생각할 사 옳을 의" },
-            { id: 8, hanzi: "孤立無援", reading: "고립무원", meaning: "외로울 고 설 립 없을 무 도울 원" },
-            { id: 9, hanzi: "苦盡甘來", reading: "고진감래", meaning: "쓸 고 다할 진 달 감 올 래" },
-            { id: 10, hanzi: "九死一生", reading: "구사일생", meaning: "아홉 구 죽을 사 한 일 살 생" },
-
-            { id: 11, hanzi: "錦衣夜行", reading: "금의야행", meaning: "비단 금 옷 의 밤 야 다닐 행" },
-            { id: 12, hanzi: "大同小異", reading: "대동소이", meaning: "큰 대 한가지 동 작을 소 다를 이" },
-            { id: 13, hanzi: "同苦同樂", reading: "동고동락", meaning: "한가지 동 쓸 고 한가지 동 즐거울 락" },
-            { id: 14, hanzi: "東奔西走", reading: "동분서주", meaning: "동녘 동 달릴 분 서녘 서 달릴 주" },
-            { id: 15, hanzi: "馬耳東風", reading: "마이동풍", meaning: "말 마 귀 이 동녘 동 바람 풍" },
-            { id: 16, hanzi: "莫上莫下", reading: "막상막하", meaning: "없을 막 위 상 없을 막 아래 하" },
-            { id: 17, hanzi: "名實相符", reading: "명실상부", meaning: "이름 명 열매 실 서로 상 부신 부" },
-            { id: 18, hanzi: "百戰老將", reading: "백전노장", meaning: "일백 백 싸울 전 늙을 로 장수 장" },
-            { id: 19, hanzi: "必歸正事", reading: "필귀정사", meaning: "반드시 필 돌아갈 귀 바를 정 일 사" },
-            { id: 20, hanzi: "戰水戰山", reading: "전수전산", meaning: "싸울 전 물 수 싸울 전 메 산" },
-
-            { id: 21, hanzi: "先公後私", reading: "선공후사", meaning: "먼저 선 공평할 공 뒤 후 사사 사" },
-            { id: 22, hanzi: "雪上加霜", reading: "설상가상", meaning: "눈 설 위 상 더할 가 서리 상" },
-            { id: 23, hanzi: "我田引水", reading: "아전인수", meaning: "나 아 밭 전 끌 인 물 수" },
-            { id: 24, hanzi: "言中有骨", reading: "언중유골", meaning: "말씀 언 가운데 중 있을 유 뼈 골" },
-            { id: 25, hanzi: "易地思之", reading: "역지사지", meaning: "바꿀 역 땅 지 생각할 사 갈 지" },
-            { id: 26, hanzi: "吾鼻三尺", reading: "오비삼척", meaning: "나 오 코 비 석 삼 자 척" },
-            { id: 27, hanzi: "有名無實", reading: "유명무실", meaning: "있을 유 이름 명 없을 무 열매 실" },
-            { id: 28, hanzi: "下馬評", reading: "하마평", meaning: "아래 하 말 마 평할 평" },
-            { id: 29, hanzi: "類類相從", reading: "유유상종", meaning: "무두 유 무두 유 서로 상 좇을 종" },
-            { id: 30, hanzi: "一口二言", reading: "일구이언", meaning: "한 일 입 구 두 이 말씀 언" },
-
-            { id: 31, hanzi: "日就月將", reading: "일취월장", meaning: "날 일 나아갈 취 달 월 나아갈 장" },
-            { id: 32, hanzi: "自業自得", reading: "자업자득", meaning: "스스로 자 업 업 스스로 자 얻을 득" },
-            { id: 33, hanzi: "作心三日", reading: "작심삼일", meaning: "지을 작 마음 심 석 삼 날 일" },
-            { id: 34, hanzi: "轉禍爲福", reading: "전화위복", meaning: "구를 전 재앙 화 할 위 복 복" },
-            { id: 35, hanzi: "朝令暮改", reading: "조령모개", meaning: "아침 조 하여금 령 날무게 모 고칠 개" },
-            { id: 36, hanzi: "坐井觀天", reading: "좌정관천", meaning: "앉을 좌 우물 정 볼 관 하늘 천" },
-            { id: 37, hanzi: "竹馬故友", reading: "죽마고우", meaning: "대 죽 말 마 옛 고 벗 우" },
-            { id: 38, hanzi: "衆口難防", reading: "중구난방", meaning: "무리 중 입 구 어려울 난 막을 방" },
-            { id: 39, hanzi: "至誠感天", reading: "지성감천", meaning: "이룰 지 정성 성 느낄 감 하늘 천" },
-            { id: 40, hanzi: "青山流水", reading: "청산유수", meaning: "푸를 청 메 산 흐를 유 물 수" },
-
-            { id: 41, hanzi: "初志一貫", reading: "초지일관", meaning: "처음 초 뜻 지 한 일 꿰뚫을 관" },
-            { id: 42, hanzi: "他山之石", reading: "타산지석", meaning: "다를 타 메 산 갈 지 돌 석" },
-            { id: 43, hanzi: "興盡悲來", reading: "흥진비래", meaning: "일 흥 다할 진 슬플 비 올 래" },
-            { id: 44, hanzi: "架橋", reading: "가교", meaning: "시울 가 다리 교" },
-            { id: 45, hanzi: "鼓吹", reading: "고취", meaning: "북 고 불 취" },
-            { id: 46, hanzi: "壓卷", reading: "압권", meaning: "누를 압 책 권" },
-            { id: 47, hanzi: "苦肉策", reading: "고육책", meaning: "쓸 고 고기 육 꾀 책" },
-            { id: 48, hanzi: "不毛地", reading: "불모지", meaning: "아닐 불 털 모 땅 지" },
-            { id: 49, hanzi: "如反掌", reading: "여반장", meaning: "같을 여 돌이킬 반 손바닥 장" },
-            { id: 50, hanzi: "刻骨難忘", reading: "각골난망", meaning: "새길 각 뼈 골 어려울 난 잊을 망" },
-
-            { id: 51, hanzi: "客反爲主", reading: "객반위주", meaning: "손 객 돌이킬 반 할 위 주인 주" },
-            { id: 52, hanzi: "見金如石", reading: "견금여석", meaning: "볼 견 쇠 금 같을 여 돌 석" },
-            { id: 53, hanzi: "結草報恩", reading: "결초보은", meaning: "맺을 결 풀 초 갚을 보 은혜 은" },
-            { id: 54, hanzi: "鷄卵有骨", reading: "계란유골", meaning: "닭 계 알 란 있을 유 뼈 골" },
-            { id: 55, hanzi: "種豆得豆", reading: "종두득두", meaning: "씨 종 콩 두 얻을 득 콩 두" },
-            { id: 56, hanzi: "錦上添花", reading: "금상첨화", meaning: "비단 금 위 상 더할 첨 꽃 화" },
-            { id: 57, hanzi: "老馬之智", reading: "노마지지", meaning: "늙을 로 말 마 갈 지 지혜 지" },
-            { id: 58, hanzi: "同氣相求", reading: "동기상구", meaning: "한가지 동 기운 기 서로 상 구할 구" },
-            { id: 59, hanzi: "同床異夢", reading: "동상이몽", meaning: "한가지 동 평상 상 다를 이 꿈 몽" },
-            { id: 60, hanzi: "燈火可親", reading: "등화가친", meaning: "등 등 불 화 옳을 가 친할 친" },
-
-            { id: 61, hanzi: "反求諸己", reading: "반구저기", meaning: "돌이킬 반 구할 구 모두 저 몸 기" },
-            { id: 62, hanzi: "發憤忘食", reading: "발분망식", meaning: "피어날 발 성낼 분 잊을 망 밥 식" },
-            { id: 63, hanzi: "百折不屈", reading: "백절불굴", meaning: "일백 백 꺾을 절 아닐 불 굽힐 굴" },
-            { id: 64, hanzi: "不知其數", reading: "부지기수", meaning: "아닐 부 알 지 그 기 셈 수" },
-            { id: 65, hanzi: "不問曲直", reading: "불문곡직", meaning: "아닐 불 물을 문 굽을 곡 곧을 직" },
-            { id: 66, hanzi: "殺身成仁", reading: "살신성인", meaning: "죽일 살 몸 신 이룰 성 어질 인" },
-            { id: 67, hanzi: "小貪大失", reading: "소탐대실", meaning: "작을 소 탐할 탐 큰 대 잃을 실" },
-            { id: 68, hanzi: "速戰速決", reading: "속전속결", meaning: "빠를 속 싸울 전 빠를 속 결단할 결" },
-            { id: 69, hanzi: "格物致知", reading: "격물치지", meaning: "격식 격 물건 물 이룰 치 알 지" },
-            { id: 70, hanzi: "兩手兼將", reading: "양수겸장", meaning: "두 양 손 수 겸할 겸 장수 장" },
-
-            { id: 71, hanzi: "魚變成龍", reading: "어변성룡", meaning: "고기 어 변할 변 이룰 성 용 용" },
-            { id: 72, hanzi: "屋上架屋", reading: "옥상가옥", meaning: "집 옥 위 상 시울 가 집 옥" },
-            { id: 73, hanzi: "欲速不達", reading: "욕속부달", meaning: "하고자할 욕 빠를 속 아닐 부 도달할 달" },
-            { id: 74, hanzi: "有口無言", reading: "유구무언", meaning: "있을 유 입 구 없을 무 말씀 언" },
-            { id: 75, hanzi: "以心傳心", reading: "이심전심", meaning: "써 이 마음 심 전할 전 마음 심" },
-            { id: 76, hanzi: "一罰百戒", reading: "일벌백계", meaning: "한 일 죄 벌 일백 백 경계할 계" },
-            { id: 77, hanzi: "自强不息", reading: "자강불식", meaning: "스스로 자 강할 강 아닐 불 쉬일 식" },
-            { id: 78, hanzi: "焚書坑儒", reading: "분서갱유", meaning: "불지를 분 책 서 묻을 갱 선비 유" },
-            { id: 79, hanzi: "會者定離", reading: "회자정리", meaning: "모일 회 놈 자 정할 정 떠날 리" },
-            { id: 80, hanzi: "晝耕夜讀", reading: "주경야독", meaning: "낮 주 밭갈 경 밤 야 읽을 독" },
-
-            { id: 81, hanzi: "進退兩難", reading: "진퇴양난", meaning: "나아갈 진 물러날 퇴 두 양 어려울 난" },
-            { id: 82, hanzi: "千態萬象", reading: "천태만상", meaning: "일천 천 모양 태 일만 만 형상 상" },
-            { id: 83, hanzi: "推己及人", reading: "추기급인", meaning: "미룰 추 몸 기 미칠 급 사람 인" },
-            { id: 84, hanzi: "破竹之勢", reading: "파죽지세", meaning: "깨뜨릴 파 대 죽 갈 지 형세 세" },
-            { id: 85, hanzi: "平地風波", reading: "평지풍파", meaning: "평평할 평 땅 지 바람 풍 물결 파" },
-            { id: 86, hanzi: "間髮", reading: "간발", meaning: "사이 간 털 터럭 발" },
-            { id: 87, hanzi: "頭角", reading: "두각", meaning: "머리 두 뿔 각" },
-            { id: 88, hanzi: "秋毫", reading: "추호", meaning: "가을 추 털 호" },
-            { id: 89, hanzi: "導火線", reading: "도화선", meaning: "이끌 도 불 화 줄 선" },
-            { id: 90, hanzi: "門外漢", reading: "문외한", meaning: "문 문 밖 외 한나라 한" },
-
-            { id: 91, hanzi: "反間計", reading: "반간계", meaning: "돌이킬 반 사이 간 꾀 계" },
-            { id: 92, hanzi: "각양각색", reading: "각양각색", meaning: "각각 각 모양 양 각각 각 빛 색" },
-            { id: 93, hanzi: "開卷有益", reading: "개권유익", meaning: "열 개 책 권 있을 유 더할 익" },
-            { id: 94, hanzi: "見物生心", reading: "견물생심", meaning: "볼 견 물건 물 날 생 마음 심" },
-            { id: 95, hanzi: "結者解之", reading: "결자해지", meaning: "맺을 결 놈 자 풀 해 갈 지" },
-            { id: 96, hanzi: "鷄口牛後", reading: "계구우후", meaning: "닭 계 입 구 소 우 뒤 후" },
-            { id: 97, hanzi: "口蜜腹劍", reading: "구밀복검", meaning: "입 구 꿀 밀 배 복 칼 검" },
-            { id: 98, hanzi: "騎虎之勢", reading: "기호지세", meaning: "말탈 기 범 호 갈 지 형세 세" },
-            { id: 99, hanzi: "獨不將軍", reading: "독불장군", meaning: "홀로 독 아닐 불 장수 장 군사 군" },
-            { id: 100, hanzi: "面從腹背", reading: "면종복배", meaning: "낯 면 좇을 종 배 복 등질 배" }
-
-        ];
+        <div class="grid grid-cols-12 gap-4 items-center py-2">
 
 
-        /* =========================================
-           변수
-           ========================================= */
+            <!-- ============================= -->
+            <!-- 왼쪽: 한자 -->
+            <!-- ============================= -->
 
-        let currentMode = 1;
-        let selectedRange = 0;
-        let activeQuestions = [];
-        let currentIndex = 0;
-        let score = 0;
-        let isAnswerChecked = false;
+            <div
+                class="col-span-5 text-center border-r pr-4 border-slate-100 flex flex-col justify-center min-h-[160px]"
+            >
+
+                <div
+                    id="hanzi-display"
+                    class="hanzi text-4xl sm:text-5xl font-black text-slate-900 tracking-wider mb-2 leading-none"
+                >
+                    ---
+                </div>
 
 
-        /* =========================================
-           범위 버튼 생성
-           ========================================= */
+                <!-- 정답 확인 후 의미 -->
 
-        const rangeGrid = document.getElementById('range-grid');
+                <div
+                    id="meaning-hint-box"
+                    class="hidden bg-indigo-50 p-2 rounded-lg border border-indigo-100 text-xs text-indigo-900 font-medium"
+                >
 
-        for (let i = 0; i < 10; i++) {
+                    <span id="meaning-hint-text">
+                        의미 영역
+                    </span>
 
-            const start = i * 10 + 1;
-            const end = (i + 1) * 10;
+                </div>
 
-            const btn = document.createElement('button');
+            </div>
 
-            btn.type = 'button';
 
-            btn.className =
-                `range-btn p-2 border-2 rounded-lg text-xs font-bold text-center transition ${
-                    i === 0
-                    ? 'border-indigo-600 bg-indigo-50 text-indigo-900'
-                    : 'border-slate-200 text-slate-700 hover:border-slate-300'
-                }`;
 
-            btn.innerText = `${start}~${end}`;
+            <!-- ============================= -->
+            <!-- 오른쪽: 입력 -->
+            <!-- ============================= -->
 
-            btn.onclick = () => selectRange(i);
+            <div class="col-span-7 space-y-2 pl-2">
 
-            rangeGrid.appendChild(btn);
+
+                <p
+                    id="mode-hint"
+                    class="text-xs text-slate-500 font-medium"
+                >
+                    고사성어의 독음을 입력하세요.
+                </p>
+
+
+                <div class="flex gap-2">
+
+                    <input
+                        type="text"
+                        id="answer-input"
+                        placeholder="독음 입력 (Enter)"
+                        class="flex-1 px-3 py-2.5 border-2 border-slate-300 rounded-xl focus:outline-none focus:border-indigo-600 text-base font-medium"
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck="false"
+                    >
+
+
+                    <button
+                        id="action-btn"
+                        onclick="handleAction()"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl transition text-base whitespace-nowrap min-w-[90px]"
+                    >
+                        확인
+                    </button>
+
+                </div>
+
+
+                <!-- 피드백 -->
+
+                <div
+                    id="feedback"
+                    class="h-8 flex items-center justify-center font-bold text-sm rounded-lg"
+                ></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ============================= -->
+    <!-- 3. 결과 영역 -->
+    <!-- ============================= -->
+
+    <div
+        id="result-section"
+        class="hidden text-center space-y-4 py-4"
+    >
+
+        <h2 class="text-xl font-bold text-slate-900">
+            퀴즈 완료!
+        </h2>
+
+
+        <div
+            class="text-4xl font-extrabold text-indigo-600"
+            id="final-score"
+        >
+            0 / 100점
+        </div>
+
+
+        <p
+            id="result-message"
+            class="text-slate-600 text-sm"
+        >
+            수고하셨습니다!
+        </p>
+
+
+        <button
+            onclick="resetSetup()"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl shadow"
+        >
+            다시 하기
+        </button>
+
+    </div>
+
+</main>
+
+
+
+<script>
+
+
+/* =========================================================
+   고사성어 데이터
+   ========================================================= */
+
+const idiomsData = [
+
+    { id: 1, hanzi: "根幹", reading: "근간", meaning: "뿌리 근 줄기 간" },
+    { id: 2, hanzi: "白眉", reading: "백미", meaning: "흰 백 눈썹 미" },
+    { id: 3, hanzi: "無盡藏", reading: "무진장", meaning: "없을 무 다할 진 감출 장" },
+    { id: 4, hanzi: "千里眼", reading: "천리안", meaning: "일천 천 마을 리 눈 안" },
+    { id: 5, hanzi: "甘言利說", reading: "감언이설", meaning: "달 감 말씀 언 이할 이 말씀 설" },
+    { id: 6, hanzi: "居安思危", reading: "거안사위", meaning: "살 거 편안 안 생각할 사 위태할 위" },
+    { id: 7, hanzi: "見利思義", reading: "견리사의", meaning: "볼 견 이할 이 생각할 사 옳을 의" },
+    { id: 8, hanzi: "孤立無援", reading: "고립무원", meaning: "외로울 고 설 립 없을 무 도울 원" },
+    { id: 9, hanzi: "苦盡甘來", reading: "고진감래", meaning: "쓸 고 다할 진 달 감 올 래" },
+    { id: 10, hanzi: "九死一生", reading: "구사일생", meaning: "아홉 구 죽을 사 한 일 살 생" },
+
+    { id: 11, hanzi: "錦衣夜行", reading: "금의야행", meaning: "비단 금 옷 의 밤 야 다닐 행" },
+    { id: 12, hanzi: "大同小異", reading: "대동소이", meaning: "큰 대 한가지 동 작을 소 다를 이" },
+    { id: 13, hanzi: "同苦同樂", reading: "동고동락", meaning: "한가지 동 쓸 고 한가지 동 즐거울 락" },
+    { id: 14, hanzi: "東奔西走", reading: "동분서주", meaning: "동녘 동 달릴 분 서녘 서 달릴 주" },
+    { id: 15, hanzi: "馬耳東風", reading: "마이동풍", meaning: "말 마 귀 이 동녘 동 바람 풍" },
+    { id: 16, hanzi: "莫上莫下", reading: "막상막하", meaning: "없을 막 위 상 없을 막 아래 하" },
+    { id: 17, hanzi: "名實相符", reading: "명실상부", meaning: "이름 명 열매 실 서로 상 부신 부" },
+    { id: 18, hanzi: "百戰老將", reading: "백전노장", meaning: "일백 백 싸울 전 늙을 로 장수 장" },
+    { id: 19, hanzi: "必歸正事", reading: "필귀정사", meaning: "반드시 필 돌아갈 귀 바를 정 일 사" },
+    { id: 20, hanzi: "戰水戰山", reading: "전수전산", meaning: "싸울 전 물 수 싸울 전 메 산" },
+
+    { id: 21, hanzi: "先公後私", reading: "선공후사", meaning: "먼저 선 공평할 공 뒤 후 사사 사" },
+    { id: 22, hanzi: "雪上加霜", reading: "설상가상", meaning: "눈 설 위 상 더할 가 서리 상" },
+    { id: 23, hanzi: "我田引水", reading: "아전인수", meaning: "나 아 밭 전 끌 인 물 수" },
+    { id: 24, hanzi: "言中有骨", reading: "언중유골", meaning: "말씀 언 가운데 중 있을 유 뼈 골" },
+    { id: 25, hanzi: "易地思之", reading: "역지사지", meaning: "바꿀 역 땅 지 생각할 사 갈 지" },
+    { id: 26, hanzi: "吾鼻三尺", reading: "오비삼척", meaning: "나 오 코 비 석 삼 자 척" },
+    { id: 27, hanzi: "有名無實", reading: "유명무실", meaning: "있을 유 이름 명 없을 무 열매 실" },
+    { id: 28, hanzi: "下馬評", reading: "하마평", meaning: "아래 하 말 마 평할 평" },
+    { id: 29, hanzi: "類類相從", reading: "유유상종", meaning: "무두 유 무두 유 서로 상 좇을 종" },
+    { id: 30, hanzi: "一口二言", reading: "일구이언", meaning: "한 일 입 구 두 이 말씀 언" },
+
+    { id: 31, hanzi: "日就月將", reading: "일취월장", meaning: "날 일 나아갈 취 달 월 나아갈 장" },
+    { id: 32, hanzi: "自業自得", reading: "자업자득", meaning: "스스로 자 업 업 스스로 자 얻을 득" },
+    { id: 33, hanzi: "作心三日", reading: "작심삼일", meaning: "지을 작 마음 심 석 삼 날 일" },
+    { id: 34, hanzi: "轉禍爲福", reading: "전화위복", meaning: "구를 전 재앙 화 할 위 복 복" },
+    { id: 35, hanzi: "朝令暮改", reading: "조령모개", meaning: "아침 조 하여금 령 날무게 모 고칠 개" },
+    { id: 36, hanzi: "坐井觀天", reading: "좌정관천", meaning: "앉을 좌 우물 정 볼 관 하늘 천" },
+    { id: 37, hanzi: "竹馬故友", reading: "죽마고우", meaning: "대 죽 말 마 옛 고 벗 우" },
+    { id: 38, hanzi: "衆口難防", reading: "중구난방", meaning: "무리 중 입 구 어려울 난 막을 방" },
+    { id: 39, hanzi: "至誠感天", reading: "지성감천", meaning: "이룰 지 정성 성 느낄 감 하늘 천" },
+    { id: 40, hanzi: "青山流水", reading: "청산유수", meaning: "푸를 청 메 산 흐를 유 물 수" },
+
+    { id: 41, hanzi: "初志一貫", reading: "초지일관", meaning: "처음 초 뜻 지 한 일 꿰뚫을 관" },
+    { id: 42, hanzi: "他山之石", reading: "타산지석", meaning: "다를 타 메 산 갈 지 돌 석" },
+    { id: 43, hanzi: "興盡悲來", reading: "흥진비래", meaning: "일 흥 다할 진 슬플 비 올 래" },
+    { id: 44, hanzi: "架橋", reading: "가교", meaning: "시울 가 다리 교" },
+    { id: 45, hanzi: "鼓吹", reading: "고취", meaning: "북 고 불 취" },
+    { id: 46, hanzi: "壓卷", reading: "압권", meaning: "누를 압 책 권" },
+    { id: 47, hanzi: "苦肉策", reading: "고육책", meaning: "쓸 고 고기 육 꾀 책" },
+    { id: 48, hanzi: "不毛地", reading: "불모지", meaning: "아닐 불 털 모 땅 지" },
+    { id: 49, hanzi: "如反掌", reading: "여반장", meaning: "같을 여 돌이킬 반 손바닥 장" },
+    { id: 50, hanzi: "刻骨難忘", reading: "각골난망", meaning: "새길 각 뼈 골 어려울 난 잊을 망" },
+
+    { id: 51, hanzi: "客反爲主", reading: "객반위주", meaning: "손 객 돌이킬 반 할 위 주인 주" },
+    { id: 52, hanzi: "見金如石", reading: "견금여석", meaning: "볼 견 쇠 금 같을 여 돌 석" },
+    { id: 53, hanzi: "結草報恩", reading: "결초보은", meaning: "맺을 결 풀 초 갚을 보 은혜 은" },
+    { id: 54, hanzi: "鷄卵有骨", reading: "계란유골", meaning: "닭 계 알 란 있을 유 뼈 골" },
+    { id: 55, hanzi: "種豆得豆", reading: "종두득두", meaning: "씨 종 콩 두 얻을 득 콩 두" },
+    { id: 56, hanzi: "錦上添花", reading: "금상첨화", meaning: "비단 금 위 상 더할 첨 꽃 화" },
+    { id: 57, hanzi: "老馬之智", reading: "노마지지", meaning: "늙을 로 말 마 갈 지 지혜 지" },
+    { id: 58, hanzi: "同氣相求", reading: "동기상구", meaning: "한가지 동 기운 기 서로 상 구할 구" },
+    { id: 59, hanzi: "同床異夢", reading: "동상이몽", meaning: "한가지 동 평상 상 다를 이 꿈 몽" },
+    { id: 60, hanzi: "燈火可親", reading: "등화가친", meaning: "등 등 불 화 옳을 가 친할 친" },
+
+    { id: 61, hanzi: "反求諸己", reading: "반구저기", meaning: "돌이킬 반 구할 구 모두 저 몸 기" },
+    { id: 62, hanzi: "發憤忘食", reading: "발분망식", meaning: "피어날 발 성낼 분 잊을 망 밥 식" },
+    { id: 63, hanzi: "百折不屈", reading: "백절불굴", meaning: "일백 백 꺾을 절 아닐 불 굽힐 굴" },
+    { id: 64, hanzi: "不知其數", reading: "부지기수", meaning: "아닐 부 알 지 그 기 셈 수" },
+    { id: 65, hanzi: "不問曲直", reading: "불문곡직", meaning: "아닐 불 물을 문 굽을 곡 곧을 직" },
+    { id: 66, hanzi: "殺身成仁", reading: "살신성인", meaning: "죽일 살 몸 신 이룰 성 어질 인" },
+    { id: 67, hanzi: "小貪大失", reading: "소탐대실", meaning: "작을 소 탐할 탐 큰 대 잃을 실" },
+    { id: 68, hanzi: "速戰速決", reading: "속전속결", meaning: "빠를 속 싸울 전 빠를 속 결단할 결" },
+    { id: 69, hanzi: "格物致知", reading: "격물치지", meaning: "격식 격 물건 물 이룰 치 알 지" },
+    { id: 70, hanzi: "兩手兼將", reading: "양수겸장", meaning: "두 양 손 수 겸할 겸 장수 장" },
+
+    { id: 71, hanzi: "魚變成龍", reading: "어변성룡", meaning: "고기 어 변할 변 이룰 성 용 용" },
+    { id: 72, hanzi: "屋上架屋", reading: "옥상가옥", meaning: "집 옥 위 상 시울 가 집 옥" },
+    { id: 73, hanzi: "欲速不達", reading: "욕속부달", meaning: "하고자할 욕 빠를 속 아닐 부 도달할 달" },
+    { id: 74, hanzi: "有口無言", reading: "유구무언", meaning: "있을 유 입 구 없을 무 말씀 언" },
+    { id: 75, hanzi: "以心傳心", reading: "이심전심", meaning: "써 이 마음 심 전할 전 마음 심" },
+    { id: 76, hanzi: "一罰百戒", reading: "일벌백계", meaning: "한 일 죄 벌 일백 백 경계할 계" },
+    { id: 77, hanzi: "自强不息", reading: "자강불식", meaning: "스스로 자 강할 강 아닐 불 쉬일 식" },
+    { id: 78, hanzi: "焚書坑儒", reading: "분서갱유", meaning: "불지를 분 책 서 묻을 갱 선비 유" },
+    { id: 79, hanzi: "會者定離", reading: "회자정리", meaning: "모일 회 놈 자 정할 정 떠날 리" },
+    { id: 80, hanzi: "晝耕夜讀", reading: "주경야독", meaning: "낮 주 밭갈 경 밤 야 읽을 독" },
+
+    { id: 81, hanzi: "進退兩難", reading: "진퇴양난", meaning: "나아갈 진 물러날 퇴 두 양 어려울 난" },
+    { id: 82, hanzi: "千態萬象", reading: "천태만상", meaning: "일천 천 모양 태 일만 만 형상 상" },
+    { id: 83, hanzi: "推己及人", reading: "추기급인", meaning: "미룰 추 몸 기 미칠 급 사람 인" },
+    { id: 84, hanzi: "破竹之勢", reading: "파죽지세", meaning: "깨뜨릴 파 대 죽 갈 지 형세 세" },
+    { id: 85, hanzi: "平地風波", reading: "평지풍파", meaning: "평평할 평 땅 지 바람 풍 물결 파" },
+    { id: 86, hanzi: "間髮", reading: "간발", meaning: "사이 간 털 터럭 발" },
+    { id: 87, hanzi: "頭角", reading: "두각", meaning: "머리 두 뿔 각" },
+    { id: 88, hanzi: "秋毫", reading: "추호", meaning: "가을 추 털 호" },
+    { id: 89, hanzi: "導火線", reading: "도화선", meaning: "이끌 도 불 화 줄 선" },
+    { id: 90, hanzi: "門外漢", reading: "문외한", meaning: "문 문 밖 외 한나라 한" },
+
+    { id: 91, hanzi: "反間計", reading: "반간계", meaning: "돌이킬 반 사이 간 꾀 계" },
+    { id: 92, hanzi: "각양각색", reading: "각양각색", meaning: "각각 각 모양 양 각각 각 빛 색" },
+    { id: 93, hanzi: "開卷有益", reading: "개권유익", meaning: "열 개 책 권 있을 유 더할 익" },
+    { id: 94, hanzi: "見物生心", reading: "견물생심", meaning: "볼 견 물건 물 날 생 마음 심" },
+    { id: 95, hanzi: "結者解之", reading: "결자해지", meaning: "맺을 결 놈 자 풀 해 갈 지" },
+    { id: 96, hanzi: "鷄口牛後", reading: "계구우후", meaning: "닭 계 입 구 소 우 뒤 후" },
+    { id: 97, hanzi: "口蜜腹劍", reading: "구밀복검", meaning: "입 구 꿀 밀 배 복 칼 검" },
+    { id: 98, hanzi: "騎虎之勢", reading: "기호지세", meaning: "말탈 기 범 호 갈 지 형세 세" },
+    { id: 99, hanzi: "獨不將軍", reading: "독불장군", meaning: "홀로 독 아닐 불 장수 장 군사 군" },
+    { id: 100, hanzi: "面從腹背", reading: "면종복배", meaning: "낯 면 좇을 종 배 복 등질 배" }
+
+];
+
+
+
+/* =========================================================
+   상태 변수
+   ========================================================= */
+
+let selectedRanges = new Set([0]);
+
+let activeQuestions = [];
+
+let currentIndex = 0;
+
+let score = 0;
+
+let isAnswerChecked = false;
+
+
+
+/* =========================================================
+   범위 버튼 만들기
+   ========================================================= */
+
+const rangeGrid = document.getElementById('range-grid');
+
+for (let i = 0; i < 10; i++) {
+
+    const start = i * 10 + 1;
+
+    const end = (i + 1) * 10;
+
+    const btn = document.createElement('button');
+
+    btn.type = 'button';
+
+    btn.className =
+        selectedRanges.has(i)
+        ? 'range-btn p-2 border-2 rounded-lg text-xs font-bold text-center transition border-indigo-600 bg-indigo-50 text-indigo-900'
+        : 'range-btn p-2 border-2 rounded-lg text-xs font-bold text-center transition border-slate-200 text-slate-700 hover:border-slate-300';
+
+    btn.innerText = `${start}~${end}`;
+
+    btn.onclick = () => selectRange(i);
+
+    rangeGrid.appendChild(btn);
+}
+
+
+updateSelectedRangeText();
+
+
+
+/* =========================================================
+   범위 선택
+   여러 개 동시 선택 가능
+   ========================================================= */
+
+function selectRange(index) {
+
+    if (selectedRanges.has(index)) {
+
+        // 최소 하나는 선택되어 있어야 함
+        if (selectedRanges.size === 1) {
+            return;
         }
 
+        selectedRanges.delete(index);
 
-        /* =========================================
-           모드 선택
-           ========================================= */
+    } else {
 
-        function selectMode(mode) {
+        selectedRanges.add(index);
 
-            currentMode = mode;
+    }
 
-            document.querySelectorAll('.mode-btn').forEach((btn, idx) => {
+
+    document
+        .querySelectorAll('.range-btn')
+        .forEach((btn, idx) => {
+
+            if (selectedRanges.has(idx)) {
 
                 btn.className =
-                    (idx + 1 === mode)
-                    ? 'mode-btn p-3 border-2 rounded-xl text-left font-semibold border-indigo-600 bg-indigo-50 text-indigo-900'
-                    : 'mode-btn p-3 border-2 rounded-xl text-left font-semibold border-slate-200 hover:border-slate-300 text-slate-700';
+                    'range-btn p-2 border-2 rounded-lg text-xs font-bold text-center transition border-indigo-600 bg-indigo-50 text-indigo-900';
 
-            });
-
-        }
-
-
-        /* =========================================
-           범위 선택
-           ========================================= */
-
-        function selectRange(index) {
-
-            selectedRange = index;
-
-            document.querySelectorAll('.range-btn').forEach((btn, idx) => {
+            } else {
 
                 btn.className =
-                    (idx === index)
-                    ? 'range-btn p-2 border-2 rounded-lg text-xs font-bold text-center border-indigo-600 bg-indigo-50 text-indigo-900'
-                    : 'range-btn p-2 border-2 rounded-lg text-xs font-bold text-center border-slate-200 text-slate-700 hover:border-slate-300';
-
-            });
-
-        }
-
-
-        /* =========================================
-           랜덤 섞기
-           ========================================= */
-
-        function shuffleArray(array) {
-
-            const arr = [...array];
-
-            for (let i = arr.length - 1; i > 0; i--) {
-
-                const j = Math.floor(Math.random() * (i + 1));
-
-                [arr[i], arr[j]] = [arr[j], arr[i]];
+                    'range-btn p-2 border-2 rounded-lg text-xs font-bold text-center transition border-slate-200 text-slate-700 hover:border-slate-300';
 
             }
 
-            return arr;
-
-        }
+        });
 
 
-        /* =========================================
-           퀴즈 시작
-           ========================================= */
+    updateSelectedRangeText();
+}
 
-        function startQuiz() {
 
-            const start = selectedRange * 10;
 
-            activeQuestions =
-                shuffleArray(
-                    idiomsData.slice(start, start + 10)
+/* =========================================================
+   선택 범위 표시
+   ========================================================= */
+
+function updateSelectedRangeText() {
+
+    const ranges = [...selectedRanges]
+        .sort((a, b) => a - b)
+        .map(index => {
+
+            const start = index * 10 + 1;
+
+            const end = (index + 1) * 10;
+
+            return `${start}~${end}`;
+
+        });
+
+
+    document.getElementById('selected-range-text').innerText =
+        `선택 범위: ${ranges.join(', ')}`;
+}
+
+
+
+/* =========================================================
+   배열 섞기
+   ========================================================= */
+
+function shuffleArray(array) {
+
+    const arr = [...array];
+
+    for (let i = arr.length - 1; i > 0; i--) {
+
+        const j = Math.floor(Math.random() * (i + 1));
+
+        [arr[i], arr[j]] =
+            [arr[j], arr[i]];
+
+    }
+
+    return arr;
+}
+
+
+
+/* =========================================================
+   퀴즈 시작
+   ========================================================= */
+
+function startQuiz() {
+
+    let questions = [];
+
+
+    // 선택된 모든 범위의 문제를 합친다.
+    [...selectedRanges]
+        .sort((a, b) => a - b)
+        .forEach(rangeIndex => {
+
+            const start =
+                rangeIndex * 10;
+
+            const rangeQuestions =
+                idiomsData.slice(
+                    start,
+                    start + 10
                 );
 
-            currentIndex = 0;
-            score = 0;
+            questions.push(
+                ...rangeQuestions
+            );
+
+        });
 
 
-            document
-                .getElementById('setup-section')
-                .classList.add('hidden');
-
-            document
-                .getElementById('result-section')
-                .classList.add('hidden');
-
-            document
-                .getElementById('quiz-section')
-                .classList.remove('hidden');
+    // 전체 문제 랜덤
+    activeQuestions =
+        shuffleArray(questions);
 
 
-            document.getElementById('mode-hint').innerText =
-                currentMode === 1
-                ? "고사성어의 독음(예: 고진감래)을 입력하세요."
-                : "각 한자의 뜻과 음(예: 쓸 고 다할 진 달 감 올 래)을 입력하세요.";
+    currentIndex = 0;
 
+    score = 0;
+
+
+    document
+        .getElementById('setup-section')
+        .classList.add('hidden');
+
+    document
+        .getElementById('result-section')
+        .classList.add('hidden');
+
+    document
+        .getElementById('quiz-section')
+        .classList.remove('hidden');
+
+
+    document
+        .getElementById('mode-hint')
+        .innerText =
+        '고사성어를 보고 독음(예: 고진감래)을 입력하세요.';
+
+
+    showQuestion();
+
+}
+
+
+
+/* =========================================================
+   문제 표시
+   ========================================================= */
+
+function showQuestion() {
+
+    const q =
+        activeQuestions[currentIndex];
+
+
+    document
+        .getElementById('hanzi-display')
+        .innerText =
+        q.hanzi;
+
+
+    document
+        .getElementById('progress-text')
+        .innerText =
+        `문제 ${currentIndex + 1} / ${activeQuestions.length}`;
+
+
+    document
+        .getElementById('score-text')
+        .innerText =
+        `점수: ${score}점`;
+
+
+    // 의미 숨기기
+    document
+        .getElementById('meaning-hint-box')
+        .classList.add('hidden');
+
+
+    // 입력창 초기화
+    const input =
+        document.getElementById('answer-input');
+
+    input.value = '';
+
+    input.disabled = false;
+
+
+    // 새 문제에서는 확인 상태 해제
+    isAnswerChecked = false;
+
+
+    // 피드백 초기화
+    const feedback =
+        document.getElementById('feedback');
+
+    feedback.innerText = '';
+
+    feedback.className =
+        'h-8 flex items-center justify-center font-bold text-sm rounded-lg';
+
+
+    // 버튼 초기화
+    const actionBtn =
+        document.getElementById('action-btn');
+
+    actionBtn.innerText = '확인';
+
+    actionBtn.className =
+        'bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl transition text-base whitespace-nowrap min-w-[90px]';
+
+
+    /*
+       iPad에서 키보드가 유지되도록
+       문제 표시 직후 입력창에 포커스
+    */
+
+    setTimeout(() => {
+
+        input.focus();
+
+    }, 50);
+
+}
+
+
+
+/* =========================================================
+   문자열 정리
+   ========================================================= */
+
+function cleanString(str) {
+
+    return str
+        .replace(/\s+/g, '')
+        .trim();
+
+}
+
+
+
+/* =========================================================
+   확인 / 다음
+   ========================================================= */
+
+function handleAction() {
+
+    if (!isAnswerChecked) {
+
+        checkAnswer();
+
+    } else {
+
+        if (
+            currentIndex <
+            activeQuestions.length - 1
+        ) {
+
+            currentIndex++;
 
             showQuestion();
 
-        }
+        } else {
 
-
-        /* =========================================
-           문제 표시
-           ========================================= */
-
-        function showQuestion() {
-
-            const q = activeQuestions[currentIndex];
-
-            document.getElementById('hanzi-display').innerText =
-                q.hanzi;
-
-            document.getElementById('progress-text').innerText =
-                `문제 ${currentIndex + 1} / ${activeQuestions.length}`;
-
-            document.getElementById('score-text').innerText =
-                `점수: ${score}점`;
-
-
-            document
-                .getElementById('meaning-hint-box')
-                .classList.add('hidden');
-
-
-            const input =
-                document.getElementById('answer-input');
-
-            input.value = '';
-            input.disabled = false;
-            input.focus();
-
-
-            const feedback =
-                document.getElementById('feedback');
-
-            feedback.innerText = '';
-
-            feedback.className =
-                'h-8 flex items-center justify-center font-bold text-sm rounded-lg';
-
-
-            isAnswerChecked = false;
-
-
-            const actionBtn =
-                document.getElementById('action-btn');
-
-            actionBtn.innerText = '확인';
-
-            actionBtn.className =
-                'bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl transition text-base whitespace-nowrap min-w-[90px]';
+            showResult();
 
         }
 
+    }
 
-        /* =========================================
-           문자열 정리
-           ========================================= */
+}
 
-        function cleanString(str) {
 
-            return str
-                .replace(/\s+/g, '')
-                .trim();
+
+/* =========================================================
+   정답 확인
+   ========================================================= */
+
+function checkAnswer() {
+
+    const input =
+        document.getElementById('answer-input');
+
+
+    // 빈 답안이면 아무것도 하지 않음
+    if (input.value.trim() === '') {
+
+        input.focus();
+
+        return;
+
+    }
+
+
+    const userAns =
+        cleanString(input.value);
+
+
+    const q =
+        activeQuestions[currentIndex];
+
+
+    // 항상 독음만 정답
+    const targetAns =
+        cleanString(q.reading);
+
+
+    const feedback =
+        document.getElementById('feedback');
+
+
+    /*
+       중요:
+       여기서 input.disabled = true를 하지 않는다.
+
+       그래서 정답을 확인한 뒤에도
+       iPad 키보드가 내려가지 않는다.
+    */
+
+
+    if (userAns === targetAns) {
+
+        score += 10;
+
+
+        feedback.innerText =
+            '정답입니다! 👏';
+
+
+        feedback.className =
+            'h-8 flex items-center justify-center font-bold text-sm rounded-lg bg-emerald-50 text-emerald-600';
+
+    } else {
+
+        feedback.innerText =
+            `오답! 정답: [ ${q.reading} ]`;
+
+
+        feedback.className =
+            'h-8 flex items-center justify-center font-bold text-sm rounded-lg bg-rose-50 text-rose-600';
+
+    }
+
+
+    // 의미 표시
+    const hintBox =
+        document.getElementById('meaning-hint-box');
+
+
+    document
+        .getElementById('meaning-hint-text')
+        .innerText =
+        `[의미] ${q.meaning}`;
+
+
+    hintBox.classList.remove('hidden');
+
+
+    // 점수
+    document
+        .getElementById('score-text')
+        .innerText =
+        `점수: ${score}점`;
+
+
+    isAnswerChecked = true;
+
+
+    // 버튼을 다음 버튼으로 변경
+    const actionBtn =
+        document.getElementById('action-btn');
+
+
+    if (
+        currentIndex <
+        activeQuestions.length - 1
+    ) {
+
+        actionBtn.innerText =
+            '다음 →';
+
+    } else {
+
+        actionBtn.innerText =
+            '결과 보기';
+
+    }
+
+
+    actionBtn.className =
+        'bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-2.5 rounded-xl transition text-base whitespace-nowrap min-w-[90px]';
+
+
+    /*
+       핵심:
+       정답 확인 직후에도 입력창에 포커스를 유지한다.
+       따라서 Enter를 한 번 더 누르면 다음 문제로 넘어간다.
+    */
+
+    setTimeout(() => {
+
+        input.focus();
+
+    }, 50);
+
+}
+
+
+
+/* =========================================================
+   Enter 키
+   ========================================================= */
+
+document
+    .getElementById('answer-input')
+    .addEventListener('keydown', function(e) {
+
+        if (e.key === 'Enter') {
+
+            /*
+               iPad/Safari에서 Enter 때문에
+               키보드가 내려가는 기본 동작 방지
+            */
+
+            e.preventDefault();
+
+            e.stopPropagation();
+
+
+            handleAction();
+
+
+            /*
+               다시 포커스
+            */
+
+            setTimeout(() => {
+
+                this.focus();
+
+            }, 50);
 
         }
 
+    });
 
-        /* =========================================
-           버튼 동작
-           ========================================= */
 
-        function handleAction() {
 
-            if (!isAnswerChecked) {
+/* =========================================================
+   결과
+   ========================================================= */
 
-                checkAnswer();
+function showResult() {
 
-            } else {
+    document
+        .getElementById('quiz-section')
+        .classList.add('hidden');
 
-                if (currentIndex < activeQuestions.length - 1) {
 
-                    currentIndex++;
+    document
+        .getElementById('result-section')
+        .classList.remove('hidden');
 
-                    showQuestion();
 
-                } else {
+    const totalScore =
+        activeQuestions.length * 10;
 
-                    showResult();
 
-                }
+    document
+        .getElementById('final-score')
+        .innerText =
+        `${score} / ${totalScore}점`;
 
-            }
 
-        }
+    const percentage =
+        totalScore > 0
+        ? (score / totalScore) * 100
+        : 0;
 
 
-        /* =========================================
-           정답 확인
-           ========================================= */
+    let msg =
+        '수고하셨습니다!';
 
-        function checkAnswer() {
 
-            const input =
-                document.getElementById('answer-input');
+    if (percentage === 100) {
 
-            if (input.value.trim() === '') return;
+        msg =
+            '완벽합니다! 만점입니다! 🎉';
 
+    } else if (percentage >= 80) {
 
-            const userAns =
-                cleanString(input.value);
+        msg =
+            '훌륭한 성적입니다! 👍';
 
-            const q =
-                activeQuestions[currentIndex];
+    } else if (percentage >= 50) {
 
+        msg =
+            '조금만 더 연습해 보세요! 💪';
 
-            const targetAns =
-                currentMode === 1
-                ? cleanString(q.reading)
-                : cleanString(q.meaning);
+    } else {
 
+        msg =
+            '다시 한번 복습해 보세요!';
 
-            const feedback =
-                document.getElementById('feedback');
+    }
 
-            input.disabled = true;
 
+    document
+        .getElementById('result-message')
+        .innerText =
+        msg;
 
-            if (userAns === targetAns) {
+}
 
-                score += 10;
 
-                feedback.innerText =
-                    "정답입니다! 👏";
 
-                feedback.className =
-                    "h-8 flex items-center justify-center font-bold text-sm rounded-lg bg-emerald-50 text-emerald-600";
+/* =========================================================
+   처음으로
+   ========================================================= */
 
-            } else {
+function resetSetup() {
 
-                const correctText =
-                    currentMode === 1
-                    ? q.reading
-                    : q.meaning;
+    document
+        .getElementById('quiz-section')
+        .classList.add('hidden');
 
-                feedback.innerText =
-                    `오답! 정답: [ ${correctText} ]`;
 
-                feedback.className =
-                    "h-8 flex items-center justify-center font-bold text-sm rounded-lg bg-rose-50 text-rose-600";
+    document
+        .getElementById('result-section')
+        .classList.add('hidden');
 
-            }
 
+    document
+        .getElementById('setup-section')
+        .classList.remove('hidden');
 
-            /* 의미 표시 */
 
-            const hintBox =
-                document.getElementById('meaning-hint-box');
+    /*
+       다시 설정 화면으로 돌아와도
+       기존 범위 선택은 유지한다.
+    */
 
-            document.getElementById('meaning-hint-text').innerText =
-                `[의미] ${q.meaning}`;
+    updateSelectedRangeText();
 
-            hintBox.classList.remove('hidden');
+}
 
 
-            document.getElementById('score-text').innerText =
-                `점수: ${score}점`;
-
-
-            isAnswerChecked = true;
-
-
-            const actionBtn =
-                document.getElementById('action-btn');
-
-            actionBtn.innerText =
-                (currentIndex < activeQuestions.length - 1)
-                ? '다음 →'
-                : '결과 보기';
-
-            actionBtn.className =
-                'bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-2.5 rounded-xl transition text-base whitespace-nowrap min-w-[90px]';
-
-        }
-
-
-        /* =========================================
-           Enter 키
-           ========================================= */
-
-        document
-            .getElementById('answer-input')
-            .addEventListener('keypress', function(e) {
-
-                if (e.key === 'Enter') {
-
-                    handleAction();
-
-                }
-
-            });
-
-
-        /* =========================================
-           결과
-           ========================================= */
-
-        function showResult() {
-
-            document
-                .getElementById('quiz-section')
-                .classList.add('hidden');
-
-            document
-                .getElementById('result-section')
-                .classList.remove('hidden');
-
-
-            document.getElementById('final-score').innerText =
-                `${score} / 100점`;
-
-
-            let msg = "수고하셨습니다!";
-
-            if (score === 100) {
-
-                msg = "완벽합니다! 만점입니다! 🎉";
-
-            } else if (score >= 80) {
-
-                msg = "훌륭한 성적입니다! 👍";
-
-            } else if (score >= 50) {
-
-                msg = "조금만 더 연습해 보세요! 💪";
-
-            }
-
-
-            document
-                .getElementById('result-message')
-                .innerText = msg;
-
-        }
-
-
-        /* =========================================
-           처음 화면
-           ========================================= */
-
-        function resetSetup() {
-
-            document
-                .getElementById('quiz-section')
-                .classList.add('hidden');
-
-            document
-                .getElementById('result-section')
-                .classList.add('hidden');
-
-            document
-                .getElementById('setup-section')
-                .classList.remove('hidden');
-
-        }
-
-    </script>
+</script>
 
 </body>
 </html>
